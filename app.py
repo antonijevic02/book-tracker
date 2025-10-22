@@ -32,5 +32,32 @@ def add_book():
     session.close()
     return jsonify({"id": book.id, "title": book.title, "author": book.author}), 201
 
+@app.route("/books/<int:id>", methods=["PUT"])
+def update_book(id):
+    data = request.get_json()
+    session = SessionLocal()
+    book = session.query(Book).get(id)
+    if not book:
+        session.close()
+        abort(404)
+    book.title = data.get("title", book.title)
+    book.author = data.get("author", book.author)
+    session.commit()
+    session.refresh(book)
+    session.close()
+    return jsonify({"id": book.id, "title": book.title, "author": book.author})
+
+@app.route("/books/<int:id>", methods=["DELETE"])
+def delete_book(id):
+    session = SessionLocal()
+    book = session.query(Book).get(id)
+    if not book:
+        session.close()
+        abort(404)
+    session.delete(book)
+    session.commit()
+    session.close()
+    return jsonify({"message": "Deleted"}), 200
+
 if __name__ == "__main__":
     app.run(debug=True)
